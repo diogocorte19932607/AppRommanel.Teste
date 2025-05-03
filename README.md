@@ -59,7 +59,7 @@ Acesse a API em: [http://localhost:5000](http://localhost:5000)
 - Executar os testes com:
 
 ```bash
-dotnet test Rommanel.Infra.Tests
+dotnet test Rommanel.Domain.Tests
 ```
 
 ---
