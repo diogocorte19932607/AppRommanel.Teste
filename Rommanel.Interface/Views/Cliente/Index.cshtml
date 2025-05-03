@@ -1,0 +1,212 @@
+﻿@{
+	ViewData["Title"] = "Clientes";
+}
+
+<div class="row justify-content-md-center">
+	<div class="col-md-10">
+
+		<div class="alert" id="alertCliente" role="alert"></div>
+
+		<form id="criarCliente" name="criarCliente">
+			<h2 class="text-monospace">Novo Cliente</h2>
+			<hr />
+			<div class="row g-3">
+				<div class="col-md-6">
+					<label for="nome" class="form-label">Nome do Cliente</label>
+					<input id="nome" name="nome" class="form-control" />
+				</div>
+				<div class="col-md-6">
+					<label for="email" class="form-label">Email</label>
+					<input id="email" name="email" class="form-control" />
+				</div>
+				<div class="col-md-4">
+					<label for="cpf_cnpj" class="form-label">CPF ou CNPJ</label>
+					<input id="cpf_cnpj" name="cpf_cnpj" class="form-control" />
+				</div>
+				<div class="col-md-4">
+					<label for="dataNascimento" class="form-label">Data de Nascimento</label>
+					<input type="date" id="dataNascimento" name="dataNascimento" class="form-control" />
+				</div>
+				<div class="col-md-4">
+					<label for="telefone" class="form-label">Telefone</label>
+					<input id="telefone" name="telefone" class="form-control" />
+				</div>
+				<div class="col-md-4">
+					<label for="tipoPessoa" class="form-label">Tipo de Pessoa</label>
+					<select id="tipoPessoa" name="tipoPessoa" class="form-control">
+						<option value="F">Física</option>
+						<option value="J">Jurídica</option>
+					</select>
+				</div>
+				<div class="col-md-4">
+					<label for="ie" class="form-label">Inscrição Estadual</label>
+					<input id="ie" name="ie" class="form-control" />
+				</div>
+				<div class="col-md-4 d-flex align-items-center">
+					<div class="form-check mt-4">
+						<input type="checkbox" id="isentoIE" class="form-check-input" />
+						<label class="form-check-label" for="isentoIE">Isento de IE</label>
+					</div>
+				</div>
+			</div>
+
+			<h4 class="text-monospace mt-4">Endereço</h4>
+			<div class="row g-3">
+				<div class="col-md-6">
+					<label for="rua" class="form-label">Rua</label>
+					<input id="rua" name="rua" class="form-control" />
+				</div>
+				<div class="col-md-2">
+					<label for="numero" class="form-label">Número</label>
+					<input id="numero" name="numero" class="form-control" />
+				</div>
+				<div class="col-md-4">
+					<label for="bairro" class="form-label">Bairro</label>
+					<input id="bairro" name="bairro" class="form-control" />
+				</div>
+				<div class="col-md-6">
+					<label for="endereco" class="form-label">Endereço</label>
+					<input id="endereco" name="endereco" class="form-control" />
+				</div>
+				<div class="col-md-3">
+					<label for="cidade" class="form-label">Cidade</label>
+					<input id="cidade" name="cidade" class="form-control" />
+				</div>
+				<div class="col-md-3">
+					<label for="estado" class="form-label">Estado</label>
+					<input id="estado" name="estado" class="form-control" />
+				</div>
+				<div class="col-md-4">
+					<label for="cep" class="form-label">CEP</label>
+					<input id="cep" name="cep" class="form-control" />
+				</div>
+				<div class="col-md-8">
+					<label for="complemento" class="form-label">Complemento</label>
+					<input id="complemento" name="complemento" class="form-control" />
+				</div>
+			</div>
+
+			<div class="form-group text-center mt-4">
+				<button id="addCliente" type="button" class="btn btn-success">ADICIONAR</button>
+			</div>
+		</form>
+
+		<h2 class="text-monospace mt-5">Clientes já cadastrados</h2>
+		<table class="table table-striped" id="tbClientes">
+			<thead>
+				<tr>
+					<th scope="col">Nome</th>
+					<th scope="col">Email</th>
+					<th></th>
+					<th></th>
+				</tr>
+			</thead>
+		</table>
+	</div>
+</div>
+
+@section Scripts {
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.mask/1.14.16/jquery.mask.min.js"></script>
+	<script>
+		$(function () {
+
+			$('#telefone').mask('(00) 00000-0000');
+			$('#cep').mask('00000-000');
+
+			new DataTable('#tbClientes', {
+				ajax: { url: "@Url.ActionLink("ListarClientes", "Cliente")", dataSrc: "" },
+				language: {
+					url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/pt-BR.json'
+				},
+				columns: [
+					{ data: 'nome' },
+					{ data: 'email' },
+					{
+						data: 'id', render: function (data) {
+							return `<a class="deletarCliente" onclick="deletarCliente('${data}')" href="javascript:void(0)">&#x274C;</a>`;
+						}
+					},
+					{
+						data: 'id', render: function (data) {
+							return `<a class="deletarCliente" href="@Url.Action("Editar", "Cliente")/${data}">editar</a>`;
+						}
+					}
+				]
+			});
+
+			$('#addCliente').click(function (e) {
+				showLoading();
+				e.preventDefault();
+				const form = document.forms.criarCliente;
+				const { nome, email } = form;
+
+				if (nome.value === "") {
+					hideLoading();
+					alert('É necessário adicionar o nome do cliente!');
+					return false;
+				}
+				if (email.value === "") {
+					hideLoading();
+					alert('É necessário adicionar o email do cliente!');
+					return false;
+				}
+
+				const obj = {
+					Id: "",
+					Nome: nome.value,
+					Email: email.value,
+					CPF_CNPJ: document.getElementById('cpf_cnpj').value,
+					DataNascimento: document.getElementById('dataNascimento').value,
+					Telefone: document.getElementById('telefone').value,
+					TipoPessoa: document.getElementById('tipoPessoa').value,
+					IE: document.getElementById('ie').value,
+					IsentoIE: document.getElementById('isentoIE').checked,
+					Endereco: {
+						Rua: document.getElementById('rua').value,
+						Numero: document.getElementById('numero').value,
+						Bairro: document.getElementById('bairro').value,
+						Endereco: document.getElementById('endereco').value,
+						Cidade: document.getElementById('cidade').value,
+						Estado: document.getElementById('estado').value,
+						Cep: document.getElementById('cep').value,
+						Complemento: document.getElementById('complemento').value
+					}
+				};
+
+				$.ajax({
+					url: '/Cliente/CriarCliente',
+					method: 'POST',
+					data: JSON.stringify(obj),
+					dataType: 'json',
+					contentType: 'application/json',
+					success: function (data) {
+						var ret = JSON.parse(data.ret || '{}');
+						if (data.sucesso) {
+							$('#alertCliente').addClass('alert-success').removeClass('alert-danger');
+							$('#alertCliente').html('Cliente cadastrado com sucesso!').fadeIn();
+						} else {
+							$('#alertCliente').addClass('alert-danger').removeClass('alert-success');
+							$('#alertCliente').html(ret.exibicaoMensagem?.mensagemCurta || "Erro ao cadastrar cliente").fadeIn();
+						}
+						hideLoading();
+						$("#tbClientes").DataTable().ajax.reload();
+					}
+				});
+			});
+		});
+
+		function deletarCliente(id) {
+			showLoading();
+			$.ajax({
+				url: '/DeletarCliente/' + id,
+				method: 'DELETE',
+				dataType: 'json',
+				contentType: 'application/json',
+				success: function () {
+					hideLoading();
+					$("#tbClientes").DataTable().ajax.reload();
+				}
+			});
+		}
+	</script>
+}
